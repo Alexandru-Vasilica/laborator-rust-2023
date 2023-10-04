@@ -14,6 +14,7 @@ fn is_prime(x: i32) -> bool {
 }
 
 fn p1() {
+    println!("Problema 1");
     let mut x = 0;
     while x <= 100 {
         if is_prime(x) {
@@ -34,6 +35,7 @@ fn are_coprime(mut a: i32, mut b: i32) -> bool {
 }
 
 fn p2() {
+    println!("Problema 2");
     let mut i: i32 = 0;
     while i <= 100 {
         let mut j = i + 1;
@@ -48,22 +50,23 @@ fn p2() {
 }
 
 fn p3() {
+    println!("Problema 3");
     let mut bottles: i32 = 99;
     while bottles > 1 {
         println!(
             "{bottles} bottles of beer on the wall,
-         {bottles} bottles of beer.
-         Take one down,pass it around, 
-          {} bottles of beer on the wall.\n",
+{bottles} bottles of beer.
+Take one down,pass it around, 
+{} bottles of beer on the wall.\n",
             bottles - 1,
         );
         bottles -= 1;
     }
     println!(
         "1 bottle of beer on the wall,
-    1 bottle of beer.
-    Take one down, pass it around,
-    No bottles of beer on the wall.\n"
+1 bottle of beer.
+Take one down, pass it around,
+No bottles of beer on the wall.\n"
     );
 }
 
