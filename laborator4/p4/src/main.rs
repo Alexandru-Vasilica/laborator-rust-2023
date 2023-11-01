@@ -5,7 +5,21 @@ fn main() -> Result<(), io::Error> {
     for mut line in text.lines() {
         if !line.starts_with("#") {
             line = line.trim();
-            println!("{line}");
+            let ip: &str;
+            if let Some(x) = line.find(" ") {
+                ip = &line[..x];
+                line = &line[x..];
+            } else {
+                continue;
+            }
+            line = line.trim();
+            let name: &str;
+            if let Some(x) = line.find(" ") {
+                name = &line[..x];
+            } else {
+                name = &line;
+            }
+            println!("{}=>{}", name.to_string(), ip.to_string());
         }
     }
     Ok(())
