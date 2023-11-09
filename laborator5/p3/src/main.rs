@@ -16,10 +16,12 @@ fn main() -> Result<()> {
         let p: Person = serde_json::from_str(line)?;
         people.push(p);
     }
-    // println!("{}", people.len());
+    if people.len() == 0 {
+        anyhow::bail!("No data provided");
+    }
     let mut min = 0;
     let mut max = 0;
-    for i in 2..people.len() {
+    for i in 1..people.len() {
         if people[i].age > people[max].age {
             max = i;
         }
