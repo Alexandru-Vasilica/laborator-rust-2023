@@ -1,9 +1,10 @@
 use anyhow::Result;
+use rusqlite::Connection;
 use std::fs;
 
 trait Command {
     fn get_name(&self) -> &'static str;
-    fn exec(&mut self, args: &[&str]);
+    fn exec(&mut self, args: &[&str]) -> Result<()>;
 }
 
 struct PingCommand {}
@@ -13,8 +14,9 @@ impl Command for PingCommand {
         "ping"
     }
 
-    fn exec(&mut self, args: &[&str]) {
+    fn exec(&mut self, args: &[&str]) -> Result<()> {
         println!("pong");
+        Ok(())
     }
 }
 
@@ -25,8 +27,9 @@ impl Command for CountCommand {
         "count"
     }
 
-    fn exec(&mut self, args: &[&str]) {
+    fn exec(&mut self, args: &[&str]) -> Result<()> {
         println!("counted {} args", args.len());
+        Ok(())
     }
 }
 
@@ -39,9 +42,10 @@ impl Command for TimesCommand {
         "times"
     }
 
-    fn exec(&mut self, args: &[&str]) {
+    fn exec(&mut self, args: &[&str]) -> Result<()> {
         self.count += 1;
         println!("Times was called {} times", self.count);
+        Ok(())
     }
 }
 
@@ -52,7 +56,7 @@ impl Command for MaxlenCommand {
         "maxlen"
     }
 
-    fn exec(&mut self, args: &[&str]) {
+    fn exec(&mut self, args: &[&str]) -> Result<()> {
         let mut max = 0;
         for arg in args {
             if arg.len() > max {
@@ -60,6 +64,53 @@ impl Command for MaxlenCommand {
             }
         }
         println!("The maximum length of an argument is {}", max);
+        Ok(())
+    }
+}
+
+struct Bookmark {
+    name: String,
+    url: String,
+}
+struct BmCommand {
+    conn: Connection,
+}
+
+impl Command for BmCommand {
+    fn get_name(&self) -> &'static str {
+        "bm"
+    }
+
+    fn exec(&mut self, args: &[&str]) -> Result<()> {
+        if args[0] == "add" {
+            if args.len() < 3 {
+                anyhow::bail!("Not enough arguments for add! Synthax: bm add <name> <url>");
+            }
+            self.conn.execute(
+                "insert into bookmarks (name,url) values (?1,?2);",
+                (args[1], args[2]),
+            )?;
+        } else if args[0] == "search" {
+            if args.len() < 2 {
+                anyhow::bail!("Not enough arguments for add! Synthax: bm search <name>");
+            }
+            let mut stmt = self.conn.prepare("select * from bookmarks")?;
+            let bookmarks = stmt.query_map([], |row| {
+                Ok(Bookmark {
+                    name: row.get("name")?,
+                    url: row.get("url")?,
+                })
+            })?;
+            for bookmark in bookmarks {
+                let bookmark = bookmark?;
+                if bookmark.name.contains(args[1]) {
+                    println!("{} {}", bookmark.name, bookmark.url);
+                }
+            }
+        } else {
+            anyhow::bail!("Incorrect bm command! Use bm add or bm search")
+        }
+        Ok(())
     }
 }
 
@@ -70,8 +121,9 @@ impl Command for StopCommand {
         "stop"
     }
 
-    fn exec(&mut self, args: &[&str]) {
+    fn exec(&mut self, args: &[&str]) -> Result<()> {
         println!("Execution stopped");
+        Ok(())
     }
 }
 
@@ -83,6 +135,7 @@ impl Terminal {
     fn new() -> Terminal {
         let mut commands: Vec<Box<dyn Command>> = Vec::new();
         commands.push(Box::new(StopCommand {}));
+
         return Terminal { commands };
     }
     fn run(&mut self) -> Result<()> {
@@ -98,7 +151,10 @@ impl Terminal {
             }
             for command in &mut self.commands {
                 if command.get_name() == args[0] {
-                    command.exec(&args[1..]);
+                    match command.exec(&args[1..]) {
+                        Ok(_) => (),
+                        Err(error) => println!("{error}"),
+                    }
 
                     if command.get_name() == "stop" {
                         break 'main;
@@ -130,10 +186,20 @@ impl Terminal {
 fn main() -> Result<()> {
     let mut terminal = Terminal::new();
 
+    let conn = Connection::open("bookmarks.db")?;
+    let create = r"
+create table if not exists bookmarks (
+    name text    not null,
+    url text not null
+);
+";
+    conn.execute(create, ())?;
+
     terminal.register(Box::new(PingCommand {}));
     terminal.register(Box::new(CountCommand {}));
     terminal.register(Box::new(TimesCommand { count: 0 }));
     terminal.register(Box::new(MaxlenCommand {}));
+    terminal.register(Box::new(BmCommand { conn }));
 
     let _ = terminal.run();
     Ok(())

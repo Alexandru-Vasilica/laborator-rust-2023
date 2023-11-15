@@ -10,6 +10,11 @@ count a             b
 times
 times
 times abc
+TiMes 
+
+maxlen asdsaasd asda as
+maxlen a               hello
+maxlen
 
 stop
 times
