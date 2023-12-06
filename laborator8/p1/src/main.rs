@@ -16,9 +16,8 @@ fn main() -> Result<()> {
     if let Some(len) = maxlen {
         v.sort_by_key(|pair| -1 * pair.1);
         for (word, count) in v {
-            println!("{word:<length$} => {count}", length = len);
+            println!("{word:<len$} => {count}");
         }
-        return Ok(());
     }
     Ok(())
 }
