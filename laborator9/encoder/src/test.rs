@@ -1,7 +1,7 @@
-use std::fs;
-use std::process::Command;
 #[test]
 fn test_text() {
+    use std::fs;
+    use std::process::Command;
     fs::write("test_in.txt", "Hello").expect("Couldn't create file");
     let output = Command::new("../target/debug/encoder")
         .arg("--input=test_in.txt")
@@ -19,6 +19,9 @@ fn test_text() {
 
 #[test]
 fn image() {
+    use std::fs;
+    use std::process::Command;
+
     let output = Command::new("../target/debug/encoder")
         .arg("--input=cat.jpg")
         .arg("--output=cat_out.txt")
