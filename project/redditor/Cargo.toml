@@ -12,3 +12,4 @@ serde_derive = "1"
 ureq = "2.9.1"
 anyhow = "1.0.75"
 chrono = "0.4.31"
+clap = { version = "4.4.11", features = ["derive"] }
