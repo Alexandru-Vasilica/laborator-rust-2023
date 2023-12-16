@@ -1,5 +1,6 @@
 use anyhow::Result;
 use serde_derive::Deserialize;
+use std::collections::HashSet;
 
 #[derive(Debug, Deserialize)]
 struct Respone {
@@ -25,28 +26,29 @@ struct PostData {
 }
 
 pub struct SubredditUpdate {
-    posts: Vec<PostData>,
+    posts: HashSet<String>,
     url: String,
 }
 impl SubredditUpdate {
-    pub fn new(url: &str) -> Self {
+    pub fn new(subreddit: &str, order: &str) -> Self {
+        let mut url = format!("https://www.reddit.com/r/{subreddit}/{order}.json");
         Self {
-            posts: Vec::new(),
+            posts: HashSet::new(),
             url: url.to_string(),
         }
     }
     pub fn update(&mut self) -> Result<()> {
         let body: String = ureq::get(&self.url).call()?.into_string()?;
         let res: Respone = serde_json::from_str(&body[0..])?;
-        self.posts = res
-            .data
+        res.data
             .children
             .into_iter()
             .map(|post| post.data)
-            .collect();
-        for post in &self.posts {
-            println!("{:?}", post);
-        }
+            .for_each(|post| {
+                if self.posts.insert(post.id.clone()) {
+                    println!("{:?}", post);
+                }
+            });
         Ok(())
     }
 }

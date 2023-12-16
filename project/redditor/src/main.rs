@@ -2,8 +2,7 @@ mod Reddit;
 use anyhow::Result;
 
 fn main() -> Result<()> {
-    let mut data =
-        Reddit::SubredditUpdate::new("https://www.reddit.com/r/leagueoflegends/new.json");
+    let mut data = Reddit::SubredditUpdate::new("leagueoflegends", "hot");
     data.update()?;
     Ok(())
 }
