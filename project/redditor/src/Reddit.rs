@@ -1,6 +1,7 @@
 use anyhow::Result;
 use serde_derive::Deserialize;
 use std::collections::HashSet;
+use std::fmt::Display;
 
 #[derive(Debug, Deserialize)]
 struct Respone {
@@ -24,6 +25,15 @@ struct PostData {
     text: String,
     id: String,
 }
+impl Display for PostData {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "Title:{}\n Author:{}\n Text:{}\n Url:https://www.reddit.com{}\n",
+            self.title, self.author, self.text, self.url
+        )
+    }
+}
 
 pub struct SubredditUpdate {
     posts: HashSet<String>,
@@ -46,7 +56,7 @@ impl SubredditUpdate {
             .map(|post| post.data)
             .for_each(|post| {
                 if self.posts.insert(post.id.clone()) {
-                    println!("{:?}", post);
+                    println!("{}", post);
                 }
             });
         Ok(())
