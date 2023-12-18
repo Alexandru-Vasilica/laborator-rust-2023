@@ -2,17 +2,19 @@ mod Reddit;
 mod args;
 
 use anyhow::Result;
-use chrono::Local;
 use std::time::Duration;
+use Reddit::SubredditUpdate;
 
 fn main() -> Result<()> {
     let args = args::Args::parsed();
     // println!("{:?}", args);
 
-    let mut data = Reddit::SubredditUpdate::new(args.get_subreddit(), args.get_order());
+    let mut data: SubredditUpdate;
+    match args.get_previous() {
+        true => data = SubredditUpdate::from_file(args.get_subreddit(), args.get_order())?,
+        false => data = SubredditUpdate::new(args.get_subreddit(), args.get_order())?,
+    }
     loop {
-        let current_time = Local::now().format("%H:%M:%S %d.%m.%Y");
-        println!("Posts as of {}", current_time);
         data.update()?;
         std::thread::sleep(Duration::from_secs(20));
     }

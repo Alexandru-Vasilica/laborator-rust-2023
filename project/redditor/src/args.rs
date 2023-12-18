@@ -20,6 +20,10 @@ pub struct Args {
     ///The order the posts are listed in "hot" order
     #[arg(short, long, value_enum,default_value_t = Order::Hot)]
     order: Order,
+
+    ///Only show posts different from the ones printed after the last execution of the command(subreddit specific)
+    #[arg(short, long)]
+    previous: bool,
 }
 
 impl Args {
@@ -35,5 +39,8 @@ impl Args {
             Order::New => return "new",
             Order::Top => return "top",
         }
+    }
+    pub fn get_previous(&self) -> bool {
+        self.previous
     }
 }
