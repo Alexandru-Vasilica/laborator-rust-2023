@@ -1,28 +1,27 @@
 use std::{io, path::PathBuf};
 use thiserror::Error;
-use ureq;
 #[derive(Error, Debug)]
 pub enum MyError {
     #[error("Could not fetch data from the subreddit")]
-    RequestError(String, ureq::Error),
+    Request(#[from] Box<ureq::Error>),
     #[error("Could not access current directory")]
-    CurrentDirectoryError(io::Error),
+    CurrentDirectory(io::Error),
     #[error("Could not access the executables parent directory")]
-    BackupDirectoryError,
+    BackupDirectory,
     #[error("Received invalid JSON")]
-    JSONError(#[from] serde_json::Error),
+    Json(#[from] serde_json::Error),
     #[error("Could not find subreddit with url:{0}")]
-    InvalidSubredditError(String),
+    InvalidSubreddit(String),
     #[error("Could not read from file {0}")]
-    FileReadError(PathBuf, io::Error),
+    FileRead(PathBuf, io::Error),
     #[error("Could not copy backup file")]
-    CopyFileError(io::Error),
+    CopyFile(io::Error),
     #[error("Could not remove cloned backup file")]
-    RemoveFileError(io::Error),
+    RemoveFile(io::Error),
     #[error("Could not create backup file")]
-    CreateFileError(io::Error),
+    CreateFile(io::Error),
     #[error("Could not write to backup file")]
-    WriteFileError(io::Error),
+    WriteFile(io::Error),
     #[error("Could not convert response to string")]
-    StringConversionError(io::Error),
+    StringConversion(io::Error),
 }

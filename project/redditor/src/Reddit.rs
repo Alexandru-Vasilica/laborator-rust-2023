@@ -53,19 +53,19 @@ impl SubredditUpdate {
         let url = format!("https://www.reddit.com/r/{subreddit}/{order}.json");
         let mut backup_file_path;
         if let Some(dir) = env::current_exe()
-            .map_err(|err| MyError::CurrentDirectoryError(err))?
+            .map_err(MyError::CurrentDirectory)?
             .parent()
         {
             backup_file_path = dir.to_path_buf();
         } else {
-            return Err(MyError::BackupDirectoryError);
+            return Err(MyError::BackupDirectory);
         }
         let mut clone_file_path = backup_file_path.clone();
         backup_file_path.push(format!("{}-{}", subreddit, order));
         clone_file_path.push(format!("{}-{}-clone", subreddit, order));
         // println!("Dirs:{:?},{:?}", backup_file_path, clone_file_path);
-        if !fs::metadata(&backup_file_path).is_ok() {
-            fs::File::create(&backup_file_path).map_err(|err| MyError::CreateFileError(err))?;
+        if fs::metadata(&backup_file_path).is_err() {
+            fs::File::create(&backup_file_path).map_err(MyError::CreateFile)?;
         }
         Ok(Self {
             posts: HashSet::new(),
@@ -80,13 +80,12 @@ impl SubredditUpdate {
         let data_str: String;
         if fs::metadata(&data.clone_file_path).is_ok() {
             data_str = fs::read_to_string(&data.clone_file_path)
-                .map_err(|err| MyError::FileReadError(data.clone_file_path.clone(), err))?;
-            fs::copy(&data.clone_file_path, &data.backup_file_path)
-                .map_err(|err| MyError::CopyFileError(err))?;
-            fs::remove_file(&data.clone_file_path).map_err(|err| MyError::RemoveFileError(err))?;
+                .map_err(|err| MyError::FileRead(data.clone_file_path.clone(), err))?;
+            fs::copy(&data.clone_file_path, &data.backup_file_path).map_err(MyError::CopyFile)?;
+            fs::remove_file(&data.clone_file_path).map_err(MyError::RemoveFile)?;
         } else {
             data_str = fs::read_to_string(&data.backup_file_path)
-                .map_err(|err| MyError::FileReadError(data.backup_file_path.clone(), err))?;
+                .map_err(|err| MyError::FileRead(data.backup_file_path.clone(), err))?;
         }
         if let Ok(posts) = serde_json::from_str(&data_str) {
             data.posts = posts;
@@ -95,25 +94,23 @@ impl SubredditUpdate {
     }
 
     pub fn save(&self) -> Result<(), MyError> {
-        fs::copy(&self.backup_file_path, &self.clone_file_path)
-            .map_err(|err| MyError::CopyFileError(err))?;
+        fs::copy(&self.backup_file_path, &self.clone_file_path).map_err(MyError::CopyFile)?;
         let serialized_str = serde_json::to_string(&self.posts)?;
-        fs::write(&self.backup_file_path, serialized_str)
-            .map_err(|err| MyError::WriteFileError(err))?;
+        fs::write(&self.backup_file_path, serialized_str).map_err(MyError::WriteFile)?;
         // std::thread::sleep(std::time::Duration::from_secs(5));
-        fs::remove_file(&self.clone_file_path).map_err(|err| MyError::RemoveFileError(err))?;
+        fs::remove_file(&self.clone_file_path).map_err(MyError::RemoveFile)?;
         Ok(())
     }
 
     pub fn update(&mut self) -> Result<(), MyError> {
         let body: String = ureq::get(&self.url)
             .call()
-            .map_err(|err| MyError::RequestError(self.url.clone(), err))?
+            .map_err(|err| MyError::Request(Box::new(err)))?
             .into_string()
-            .map_err(|err| MyError::StringConversionError(err))?;
+            .map_err(MyError::StringConversion)?;
         let res: Respone = serde_json::from_str(&body[0..])?;
         if res.data.children.is_empty() {
-            return Err(MyError::InvalidSubredditError(self.url.clone()));
+            return Err(MyError::InvalidSubreddit(self.url.clone()));
         }
         let current_time = Local::now().format("%H:%M:%S %d.%m.%Y");
         println!("Posts as of {}", current_time);

@@ -41,15 +41,15 @@ impl Args {
     }
     pub fn get_order(&self) -> &str {
         match &self.order {
-            Order::Hot => return "hot",
-            Order::New => return "new",
-            Order::Top => return "top",
+            Order::Hot => "hot",
+            Order::New => "new",
+            Order::Top => "top",
         }
     }
     pub fn get_previous(&self) -> bool {
         self.previous
     }
     pub fn get_time(&self) -> Duration {
-        return Duration::from_secs(self.time);
+        Duration::from_secs(self.time)
     }
 }
