@@ -117,6 +117,7 @@ impl SubredditUpdate {
         }
         let current_time = Local::now().format("%H:%M:%S %d.%m.%Y");
         println!("Posts as of {}", current_time);
+        let mut found_new = false;
         res.data
             .children
             .into_iter()
@@ -124,8 +125,12 @@ impl SubredditUpdate {
             .for_each(|post| {
                 if self.posts.insert(post.id.clone()) {
                     println!("{}", post);
+                    found_new = true;
                 }
             });
+        if !found_new {
+            println!("No new posts found");
+        }
         self.save()
     }
 }

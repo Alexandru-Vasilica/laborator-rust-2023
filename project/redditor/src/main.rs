@@ -1,8 +1,6 @@
 mod Reddit;
 mod args;
 mod errors;
-
-use std::time::Duration;
 use Reddit::SubredditUpdate;
 
 fn main() {
@@ -23,7 +21,7 @@ fn main() {
                 }
                 Ok(()) => {}
             }
-            std::thread::sleep(Duration::from_secs(20));
+            std::thread::sleep(args.get_time());
         }
     } else {
         eprintln!("Error:{}", data_result.unwrap_err());

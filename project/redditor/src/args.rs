@@ -1,4 +1,6 @@
-pub use clap::{Parser, ValueEnum};
+use clap::{Parser, ValueEnum};
+use std::time::Duration;
+
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum, Debug)]
 enum Order {
     New,
@@ -17,13 +19,17 @@ pub struct Args {
     #[arg(short, long)]
     subreddit: String,
 
-    ///The order the posts are listed in "hot" order
+    ///The order the posts are listed in(defaults to "hot")
     #[arg(short, long, value_enum,default_value_t = Order::Hot)]
     order: Order,
 
     ///Only show posts different from the ones printed after the last execution of the command(subreddit and order specific)
     #[arg(short, long)]
     previous: bool,
+
+    ///The ammount of seconds between updates(defaults to 60 seconds)
+    #[arg(short, long, default_value_t = 60)]
+    time: u64,
 }
 
 impl Args {
@@ -42,5 +48,8 @@ impl Args {
     }
     pub fn get_previous(&self) -> bool {
         self.previous
+    }
+    pub fn get_time(&self) -> Duration {
+        return Duration::from_secs(self.time);
     }
 }
