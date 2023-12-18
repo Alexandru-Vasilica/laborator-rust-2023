@@ -1,21 +1,32 @@
 mod Reddit;
 mod args;
+mod errors;
 
-use anyhow::Result;
 use std::time::Duration;
 use Reddit::SubredditUpdate;
 
-fn main() -> Result<()> {
+fn main() {
     let args = args::Args::parsed();
     // println!("{:?}", args);
 
-    let mut data: SubredditUpdate;
+    let data_result;
     match args.get_previous() {
-        true => data = SubredditUpdate::from_file(args.get_subreddit(), args.get_order())?,
-        false => data = SubredditUpdate::new(args.get_subreddit(), args.get_order())?,
+        true => data_result = SubredditUpdate::from_file(args.get_subreddit(), args.get_order()),
+        false => data_result = SubredditUpdate::new(args.get_subreddit(), args.get_order()),
     }
-    loop {
-        data.update()?;
-        std::thread::sleep(Duration::from_secs(20));
+    if let Ok(mut data) = data_result {
+        loop {
+            match data.update() {
+                Err(error) => {
+                    eprintln!("Error:{}", error);
+                    break;
+                }
+                Ok(()) => {}
+            }
+            std::thread::sleep(Duration::from_secs(20));
+        }
+    } else {
+        eprintln!("Error:{}", data_result.unwrap_err());
     }
+    return;
 }

@@ -21,7 +21,7 @@ pub struct Args {
     #[arg(short, long, value_enum,default_value_t = Order::Hot)]
     order: Order,
 
-    ///Only show posts different from the ones printed after the last execution of the command(subreddit specific)
+    ///Only show posts different from the ones printed after the last execution of the command(subreddit and order specific)
     #[arg(short, long)]
     previous: bool,
 }
