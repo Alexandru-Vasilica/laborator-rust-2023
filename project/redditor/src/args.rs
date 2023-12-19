@@ -11,7 +11,7 @@ enum Order {
 #[derive(Parser, Debug)]
 #[command(
     version,
-    about = "Execcutable that shows new posts from a subreddit after a set ammount of time has passed"
+    about = "Executable that shows new posts from a subreddit after a set ammount of time has passed"
 )]
 
 pub struct Args {
@@ -19,7 +19,7 @@ pub struct Args {
     #[arg(short, long)]
     subreddit: String,
 
-    ///The order the posts are listed in(defaults to "hot")
+    ///The order the posts are listed in
     #[arg(short, long, value_enum,default_value_t = Order::Hot)]
     order: Order,
 
@@ -27,7 +27,7 @@ pub struct Args {
     #[arg(short, long)]
     previous: bool,
 
-    ///The ammount of seconds between updates(defaults to 60 seconds)
+    ///The ammount of seconds between updates
     #[arg(short, long, default_value_t = 60)]
     time: u64,
 }
