@@ -2,11 +2,11 @@ mod args;
 mod errors;
 mod reddit;
 
+use args::Args;
 use reddit::SubredditUpdate;
 
 fn main() {
-    let args = args::Args::parsed();
-    // println!("{:?}", args);
+    let args = Args::parsed();
 
     let data_result = match args.get_previous() {
         true => SubredditUpdate::from_file(args.get_subreddit(), args.get_order()),

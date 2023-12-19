@@ -1,3 +1,4 @@
+use core::fmt;
 use std::{io, path::PathBuf};
 use thiserror::Error;
 #[derive(Error, Debug)]
@@ -24,4 +25,6 @@ pub enum MyError {
     WriteFile(io::Error),
     #[error("Could not convert response to string")]
     StringConversion(io::Error),
+    #[error("Could not display data")]
+    Display(#[from] fmt::Error),
 }

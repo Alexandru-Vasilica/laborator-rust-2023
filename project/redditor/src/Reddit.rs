@@ -1,6 +1,7 @@
 use crate::errors::MyError;
 
-use chrono::Local;
+use chrono::{Local, TimeZone, Utc};
+use core::fmt;
 use serde_derive::Deserialize;
 use std::collections::HashSet;
 use std::env;
@@ -29,14 +30,24 @@ struct PostData {
     url: String,
     #[serde(rename = "selftext")]
     text: String,
+    #[serde(rename = "created_utc")]
+    created_utc: f64,
     id: String,
 }
 impl Display for PostData {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let Some(utc_time) = Utc.timestamp_opt(self.created_utc as i64, 0).single() else {
+            return Err(fmt::Error);
+        };
+        let local_time = utc_time.with_timezone(&Local);
         write!(
             f,
-            "Title:{}\n Author:{}\n Text:{}\n Url:https://www.reddit.com{}\n",
-            self.title, self.author, self.text, self.url
+            "Title:{}\n Author:{}\nPosted at:{}\n Text:{}\n Url:https://www.reddit.com{}\n",
+            self.title,
+            self.author,
+            local_time.format("%H:%M:%S %d.%m.%Y"),
+            self.text,
+            self.url
         )
     }
 }
@@ -63,7 +74,7 @@ impl SubredditUpdate {
         let mut clone_file_path = backup_file_path.clone();
         backup_file_path.push(format!("{}-{}", subreddit, order));
         clone_file_path.push(format!("{}-{}-clone", subreddit, order));
-        // println!("Dirs:{:?},{:?}", backup_file_path, clone_file_path);
+
         if fs::metadata(&backup_file_path).is_err() {
             fs::File::create(&backup_file_path).map_err(MyError::CreateFile)?;
         }
@@ -93,7 +104,7 @@ impl SubredditUpdate {
         Ok(data)
     }
 
-    pub fn save(&self) -> Result<(), MyError> {
+    fn save(&self) -> Result<(), MyError> {
         fs::copy(&self.backup_file_path, &self.clone_file_path).map_err(MyError::CopyFile)?;
         let serialized_str = serde_json::to_string(&self.posts)?;
         fs::write(&self.backup_file_path, serialized_str).map_err(MyError::WriteFile)?;
